@@ -5,9 +5,22 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// Inicializar cliente de WhatsApp con sesión persistente
+// Inicializar cliente de WhatsApp adaptado para entornos en la nube (Render)
 const client = new Client({
-    authStrategy: new LocalAuth()
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
+    }
 });
 
 let isReady = false;
@@ -50,7 +63,8 @@ app.post('/enviar-alerta', async (req, res) => {
     }
 });
 
-// Iniciar servidor local en el puerto 3000
-app.listen(3000, () => {
-    console.log('Servidor escuchando en http://localhost:3000');
+// Iniciar servidor en el puerto 3000 o el que asigne Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
